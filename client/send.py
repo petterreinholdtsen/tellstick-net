@@ -7,7 +7,7 @@
 #
 #
 
-import socket, re, sys
+import socket, sys
 
 UDPSock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 UDPSock.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1)
@@ -19,7 +19,6 @@ UDPSock.bind( ('', 42314) )
 print "Autodiscover TellStick Net..."
 UDPSock.sendto("D", ('255.255.255.255',30303))
 
-p = re.compile('(.+):(.+):(.+):(.+)')
 ip = None
 
 while 1:
@@ -27,9 +26,9 @@ while 1:
 		(buf, (ip, port)) = UDPSock.recvfrom(2048)
 	except socket.error, msg:
 		break
-	m = p.match(buf)
-	print "Found %s on ip %s firmware version %s" % (m.group(1), ip, m.group(4))
-	if (m.group(4) == 'X'):
+	m = buf.split(':')
+	print("Found %s on ip %s firmware version %s" % (m[0], ip, m[3]))
+	if (m[3] == 'X'):
 		print "  This has firmware X, lets use it"
 		break
 	else:
