@@ -9,21 +9,25 @@
 
 import socket, sys
 
+DISCOVER_PORT = 30303
+LOCAL_ACCESS_PORT = 42314
+RECV_BUFSIZE = 2048
+
 UDPSock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 UDPSock.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1)
 UDPSock.setblocking(1)
-UDPSock.settimeout(3)
+UDPSock.settimeout(10)
 
-UDPSock.bind( ('', 42314) )
+UDPSock.bind( ('', LOCAL_ACCESS_PORT) )
 
 print "Autodiscover TellStick Net..."
-UDPSock.sendto("D", ('255.255.255.255',30303))
+UDPSock.sendto("D", ('<broadcast>',DISCOVER_PORT))
 
 ip = None
 
 while 1:
 	try:
-		(buf, (ip, port)) = UDPSock.recvfrom(2048)
+		(buf, (ip, port)) = UDPSock.recvfrom(RECV_BUFSIZE)
 	except socket.error, msg:
 		break
 	m = buf.split(':')
@@ -48,5 +52,15 @@ unit = 0
 method = 2
 msg = "4:sendh8:protocol%X:%s5:model%X:%s5:housei%Xs4:uniti%Xs6:methodi%Xss" % (len(protocol), protocol, len(model), model, house, unit, method)
 
-UDPSock.sendto(msg,(ip,42314))
+UDPSock.sendto(msg,(ip, LOCAL_ACCESS_PORT))
+
+# Ask to receive events and print the events received
+UDPSock.sendto("B:reglistener", (ip, LOCAL_ACCESS_PORT))
+while True:
+        data,(addr,port) = UDPSock.recvfrom(RECV_BUFSIZE)
+        if not data:
+                break
+        else:
+                print(data)
+
 sys.exit(0)
