@@ -28,8 +28,8 @@ while 1:
 		break
 	m = buf.split(':')
 	print("Found %s on ip %s firmware version %s" % (m[0], ip, m[3]))
-	if (m[3] == 'X'):
-		print "  This has firmware X, lets use it"
+	if (m[3] == 'X' or 17 <= int(m[3])):
+		print("  This has firmware %s, lets use it" % m[3])
 		break
 	else:
 		print "  Not using correct firmware"
